@@ -1,4 +1,14 @@
 
+Base.@kwdef mutable struct AudioGen
+        sample_rate::Float64
+        fps::Integer
+        freqs::Vector{Float64}
+        last_phases = zeros(Float64, length(freqs))
+        grain_time::Float64 = Float64(1 / fps)
+        buf_size::Integer = ceil(Integer, grain_time * sample_rate)
+        buf::Matrix{Float64} = zeros(Float64, buf_size, 2)
+end
+
 #=
 function sine_stack!(ag::AudioGen, buf::Vector{Float64}, u::Vector{Float64}, amp_mod::Function)
     # mono version

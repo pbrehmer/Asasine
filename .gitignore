@@ -1,5 +1,8 @@
 # ignore notebook checkpoints
-./ipynb_checkpoints
+.ipynb_checkpoints/
 
 # exported animations take up lots of space
-./anim-export
+anim-export/
+
+# VS code workspace
+asasine.code-workspace

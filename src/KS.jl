@@ -1,4 +1,32 @@
 
+Base.@kwdef mutable struct KSIntegrator
+    u0::Vector{Float64}
+    Lx::Float64
+    dt::Float64
+
+    ### additional physical parameters
+    Nx::Integer = length(u0)
+    kx::Vector{Integer} = vcat(0:Nx/2-1, 0, -Nx/2+1:-1) # shifted PBC integer wavenumbers
+    alpha::Vector{Float64} = 2pi/Lx * kx
+
+    # convenience variables
+    L::Vector{Float64} = alpha.^2 - alpha.^4
+    G::Vector{ComplexF64} = -0.5im * alpha
+    dt2::Float64 = dt/2
+    dt32::Float64 = 3*dt/2
+    A::Vector{Float64} = ones(Nx) + dt2*L
+    B::Vector{Float64} = (ones(Nx) - dt2*L).^-1
+    
+    # compute in-place planned FFTs
+    FFT! = FFTW.plan_fft!((1+0im)*u0, flags=FFTW.ESTIMATE)
+    IFFT! = FFTW.plan_ifft!((1+0im)*u0, flags=FFTW.ESTIMATE)
+
+    # prepare time evolution in Fourier domain
+    Nn::Vector{ComplexF64} = G .* FFTW.fft(u0.^2)
+    Nn1::Vector{ComplexF64} = copy(Nn)
+    u::Vector{ComplexF64} = FFT! * u0
+end
+
 function evolve!(ks::KSIntegrator, steps::Int=1)
     for n = 0:steps-1
         # compute Nn = G .* fft(real(ifft(u)).^2) inbounds with fastmath
@@ -45,49 +73,4 @@ function integrate(ks::KSIntegrator, Nt::Integer, nplot::Integer)
     end
 
     return U, t, x
-end
-
-function start(ks::KSIntegrator, audiogen::AudioGen,
-        Nt::Integer, nplot::Integer, att::Float64, amp_mod::Function)
-    PortAudio.PortAudioStream(0, 2; samplerate=sample_rate) do stream
-        # initialize KS data and parameters
-        # nsave = round(Integer, Nt/nplot)+1 # total number of presently displayed time steps
-        # t = ks.dt*nplot * collect(0:nsave-1)
-        # x = ks.Lx/ks.Nx * collect(1:ks.Nx)
-        # U = zeros(Float64, nsave, ks.Nx)
-        # U[end, :] = ks.u0
-
-        # initialize figure and data
-        U, t, x = integrate(ks, Nt, nplot)
-        U_max = maximum(abs.(U)) # for attenuation
-
-        fig = GLMakie.Figure()
-        ax = GLMakie.Axis(fig[1, 1])
-        GLMakie.hidedecorations!(ax)
-        hm = GLMakie.heatmap!(t, x, U,
-            fxaa = true, inspectable = false,
-            colorrange = (-U_max, U_max))
-        GLMakie.display(fig)
-
-        # live time stepping and plotting
-        while GLMakie.events(fig).window_open[]
-            evolve!(ks, nplot)
-            U_new = get_solution(ks)
-            U = vcat(U[begin+1:end,:], U_new')
-            hm[3] = U
-
-            # stereorize and normalize
-            U_stereo = hcat(U_new, zeros(Float64, Nx))
-            for i in 1:Nx
-                if U_stereo[i] > 0
-                    U_stereo[i, 2] = U_stereo[i, 1]
-                    U_stereo[i, 1] = 0.0
-                end
-            end
-            U_stereo = U_stereo .* att ./ U_max
-
-            sine_stack!(audiogen, U_stereo, amp_mod)
-            write(stream, audiogen.buf)
-        end
-    end
 end
