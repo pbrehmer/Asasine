@@ -1,0 +1,5 @@
+# ignore notebook checkpoints
+./ipynb_checkpoints
+
+# exported animations take up lots of space
+./anim-export
