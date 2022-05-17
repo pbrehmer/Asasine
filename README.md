@@ -7,6 +7,9 @@ The space indices of `U[t, x]` correspond to the sine frequencies of the stack a
 - figure out: are audio glitches a performance problem or some misunderstanding of `PortAudio.jl`?
   - write up quick function to pre-render audio buffer for some `U[t,x]`
   - smoother interpolation probably doesn't work anymore; think about new one without `last_phases`
+  - understand where `libportaudio: Output underflowed` comes from
+    > Probably due to CPU not being fast enough and a gap being inserted into buffer to make up for delay.
+  - use multi-threading to handle animation and audio in parallel
 - start audio generation and heatmap animation from `U[0, :]`
   - think about renormalizing audio then
 - `Makie.jl`:
@@ -14,5 +17,6 @@ The space indices of `U[t, x]` correspond to the sine frequencies of the stack a
   - add left/right spectrum (amp- and frequency-mapped `U[t,x]` slices) to layout
   - add parameter sliders to change parameters on the fly
 - investigate divergence of CNAB2 stepping for certain `kx` orderings
+- use types from `SampledSignals.jl`
 
 ### Ideas

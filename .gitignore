@@ -2,7 +2,10 @@
 .ipynb_checkpoints/
 
 # exported animations take up lots of space
-anim-export/
+export/
 
 # VS code workspace
 asasine.code-workspace
+
+# Julia formatting
+.JuliaFormatter.toml
