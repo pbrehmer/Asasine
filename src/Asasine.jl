@@ -1,16 +1,14 @@
 module Asasine
 
 using FFTW, GLMakie, PortAudio
-import Makie: PriorityObservable
-set_theme!(theme_black())
 
 include("./audio.jl")
-export AudioGen, sine_stack!
+export AudioGen, sine_stack!, stereorize
 
 include("./ks.jl")
 export KSIntegrator, evolve!, get_solution, integrate
 
 include("./stepping.jl")
-export start
+export start_stream 
 
 end

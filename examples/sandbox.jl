@@ -1,4 +1,7 @@
+using Revise
+using Makie
 using Asasine
+set_theme!(theme_black())
 
 # KS parameters
 Lx = 80
@@ -14,11 +17,12 @@ ks = KSIntegrator(u0, Lx, dt);
 # audio parameters
 sample_rate = Float64(44100)
 fps = 30
-downsampler = 16
-println("Video resolution per time step: ", Nx)
-println("Audio resolution per time step: ", Nx / downsampler)
+freq_step = 16
+speed_factor = 1.0
+println("Number of pixels on y-axis: ", Nx)
+println("Number of y-axis-mapped sine frequencies: ", Nx / freq_step)
 # freqs = collect(range(40, 400, Nx))
-freqs = [50.0 + tanh(0.3 * i / Nx) * 2500.0 for i = 0:downsampler:Nx-1]
+freqs = [80.0 + tanh(0.3 * i / Nx) * 3000.0 for i = 0:freq_step:Nx-1]
 audiogen = AudioGen(sample_rate, fps, freqs);
 
 # start time stepping
@@ -26,4 +30,4 @@ Nt = 800
 nplot = 1
 att = 0.6 # additional attenuation
 amp_mod = x -> x^5
-start(sample_rate, ks, audiogen, Nt, nplot, att, amp_mod)
+start_stream(sample_rate, ks, audiogen, Nt, nplot, att, amp_mod)
