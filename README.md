@@ -4,11 +4,9 @@ Generates audio-visual stream from the solution of the Kuramoto-Sivashinsky part
 The space indices of `U[t, x]` correspond to the sine frequencies of the stack and are (potentially) mapped by some non-linear funtion. Each sine in the stack has an amplitude determined via the actual values of the solution array, which is again put through some mapping; here polynomials `x -> x^7` are one practical option, because they accentuate the non-zero `streamlines` and attenuate the channels inbetween, leading to a more distinct audio spectrum.
 
 ### Todo
-- set correct x-ticks in spectrum plot
-- add parameter sliders to change parameters on the fly
-- figure out: are audio glitches a performance problem or some misunderstanding of `PortAudio.jl`?
-  - fix flickering lowest frequency
-  - maybe generate audio buffer via IFFT
+- set global theme via `Theme` struct in Makie
+- add parameter sliders to change parameters on the fly via `SliderGrid`
+- maybe generate audio buffer via IFFT for improved performance
 - add record function
   - export audio/video separately or fuse into one `.mp4` file?
 - start audio generation and heatmap animation from `U[0, :]`

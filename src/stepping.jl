@@ -1,6 +1,12 @@
 
 function start_stream(
-    sample_rate, ks::KSIntegrator, audiogen::AudioGen, Nt, nplot, att, amp_mod::Function
+    sample_rate,
+    ks::KSIntegrator,
+    audiogen::AudioGen,
+    Nt,
+    nplot,
+    att,
+    amp_mod::Function,
 )
     PortAudioStream(0, 2; samplerate=sample_rate) do stream
         # initialize KS data and parameters
@@ -17,7 +23,7 @@ function start_stream(
 
         # set up heatmap
         fig = Figure(; resolution=(1000, 700))
-        ax1 = Axis(fig[1:2, 1])
+        ax1 = Axis(fig[1:2, 1], title="Kuramoto-Sivashinsky stream")
         hidedecorations!(ax1)
         hm = heatmap!(
             ax1,
@@ -32,31 +38,43 @@ function start_stream(
         Colorbar(fig[3, 1], hm; ticks=([-U_max, U_max], ["L", "R"]), vertical=false)
 
         # set up frequency spectrum
-        ax2 = Axis(fig[1, 2]; xscale=log10)
+        ax2 = Axis(
+            fig[1, 2];
+            title="spectrum analyzer",
+            xlabel="frequency [Hz]",
+            xscale=log10,
+            xticks=(
+                [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000],
+                string.([20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]),
+            ),
+            ylabel="amplitude",
+            yaxisposition=:right,
+        )
         ylims!(ax2, 0.0, 0.75)
-        freq_step = ks.Nx ÷ length(audiogen.freqs)
-        freq_idx = 1:freq_step:ks.Nx
-        spectrum_left = Observable{Vector{Float64}}(abs.(U_stereo[freq_idx, 1]))
-        spectrum_right = Observable{Vector{Float64}}(U_stereo[freq_idx, 2])
-
+        xlims!(ax2, 20, audiogen.freqs[end] > 10000 ? audiogen.freqs[end] : 10000)
+        hideydecorations!(ax2, label=false)
+        spectrum_left = Observable{Vector{Float64}}(abs.(U_stereo[audiogen.freq_idx, 1]))
+        spectrum_right = Observable{Vector{Float64}}(U_stereo[audiogen.freq_idx, 2])
         rangebars!(
             ax2,
             audiogen.freqs,
             zeros(length(audiogen.freqs)),
             spectrum_left;
-            color=:magenta,
+            color=:deeppink,
+            label="L",
         )
         rangebars!(
             ax2,
             audiogen.freqs,
             zeros(length(audiogen.freqs)),
             spectrum_right;
-            color=:cyan,
+            color=:turquoise,
+            label="R",
         )
-
-        display(fig)
+        axislegend(ax2)
 
         # live time stepping and plotting
+        display(fig)
         while events(fig).window_open[]
             push = @task begin
                 write(stream, audiogen.buf)
@@ -77,8 +95,8 @@ function start_stream(
                 U_stereo = U_stereo .* att ./ U_max
                 sine_stack!(audiogen, U_stereo, amp_mod)
             end
-            spectrum_left[] = abs.(U_stereo[freq_idx, 1])
-            spectrum_right[] = U_stereo[freq_idx, 2]
+            spectrum_left[] = abs.(U_stereo[audiogen.freq_idx, 1])
+            spectrum_right[] = U_stereo[audiogen.freq_idx, 2]
 
             schedule(generate)
             wait(push)
