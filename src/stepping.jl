@@ -24,16 +24,16 @@ function start_stream(
             t,
             x,
             U;
+            colormap=:hawaii,
             fxaa=true,
             inspectable=false,
-            colormap=:hawaii,
             colorrange=(-U_max, U_max),
         )
         Colorbar(fig[3, 1], hm; ticks=([-U_max, 0.0, U_max], ["L", " ", "R"]), vertical=false)
 
         # frequency spectrum
         ax2 = Axis(
-            fig[1, 2];
+            fig[1, 2:3];
             title="spectrum analyzer",
             xlabel="frequency [Hz]",
             xscale=log10,
@@ -69,16 +69,19 @@ function start_stream(
 
         # interactive elements
         sg = SliderGrid(
-            fig[2, 2],
+            fig[2, 2:3],
             (label="volume", range=0:0.1:1, startvalue=att),
             (label="fps", range=5:5:60, startvalue=audiogen.fps),
             # (label="frequency step", range=1:1:ks.Nx÷2, startvalue=audiogen.freq_idx.step),
         )
-        running_toggle = Toggle(fig[3, 2]; active=true, height=20, tellwidth=false)
+        running_toggle = Toggle(
+            fig[3, 2]; active=true, height=20, tellwidth=false, halign=:left
+        )
         Label(
             fig[3, 2],
             lift(x -> x ? "running" : "stopped", running_toggle.active);
             tellwidth=false,
+            width=-1,
         )
         # islider = IntervalSlider(
         #     fig[3, 2],
@@ -86,8 +89,11 @@ function start_stream(
         #     startvalues=(audiogen.freq_idx.start, audiogen.freq_idx.stop),
         # )
 
-        # live time stepping and plotting
+        # resize and display figure
+        colsize!(fig.layout, 1, Relative(3 / 5))
         display(fig)
+
+        # live time stepping and plotting
         while events(fig).window_open[]
             # write audio buffer to stream
             push = @task begin

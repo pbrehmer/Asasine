@@ -1,7 +1,7 @@
 using Revise
 using Makie
 using Asasine
-set_theme!(theme_black())
+set_theme!(ks_theme)
 
 # KS parameters
 Lx = 128
