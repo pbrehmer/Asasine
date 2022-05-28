@@ -2,20 +2,22 @@
 mutable struct AudioGen
     sample_rate::Float64
     fps::Int
-    freqs::Vector{Float64}
+    freq_func::Function
     freq_idx::StepRange
+    freqs::Vector{Float64}
     last_phases::Vector{Float64}
     grain_time::Float64
     buf_size::Int
     buf::Matrix{Float64}
 end
-function AudioGen(sample_rate, fps, freqs; freq_idx=1:1:length(freqs))
+function AudioGen(sample_rate, fps, freq_func::Function; freq_idx=1:1:length(freqs))
+    freqs = freq_func.(Float64.(freq_idx))
     last_phases = zeros(Float64, length(freqs))
     grain_time::Float64 = Float64(1 / fps)
     buf_size::Integer = ceil(Integer, grain_time * sample_rate)
     buf::Matrix{Float64} = zeros(Float64, buf_size, 2)
 
-    AudioGen(sample_rate, fps, freqs, freq_idx, last_phases, grain_time, buf_size, buf)
+    AudioGen(sample_rate, fps, freq_func, freq_idx, freqs, last_phases, grain_time, buf_size, buf)
 end
 
 function sine_stack!(ag::AudioGen, u::Matrix{Float64}, amp_mod::Function)

@@ -1,12 +1,6 @@
 
 function start_stream(
-    sample_rate,
-    ks::KSIntegrator,
-    audiogen::AudioGen,
-    Nt,
-    nplot,
-    att,
-    amp_mod::Function,
+    sample_rate, ks::KSIntegrator, audiogen::AudioGen, Nt, nplot, att, amp_mod::Function
 )
     PortAudioStream(0, 2; samplerate=sample_rate) do stream
         # initialize KS data and parameters
@@ -21,9 +15,9 @@ function start_stream(
         U_max = maximum(abs.(U)) # for attenuation
         U_stereo = stereorize(U[end, :])
 
-        # set up heatmap
+        # KS heatmap
         fig = Figure(; resolution=(1000, 700))
-        ax1 = Axis(fig[1:2, 1], title="Kuramoto-Sivashinsky stream")
+        ax1 = Axis(fig[1:2, 1]; title="Kuramoto-Sivashinsky stream")
         hidedecorations!(ax1)
         hm = heatmap!(
             ax1,
@@ -35,9 +29,9 @@ function start_stream(
             colormap=:hawaii,
             colorrange=(-U_max, U_max),
         )
-        Colorbar(fig[3, 1], hm; ticks=([-U_max, U_max], ["L", "R"]), vertical=false)
+        Colorbar(fig[3, 1], hm; ticks=([-U_max, 0.0, U_max], ["L", " ", "R"]), vertical=false)
 
-        # set up frequency spectrum
+        # frequency spectrum
         ax2 = Axis(
             fig[1, 2];
             title="spectrum analyzer",
@@ -52,10 +46,10 @@ function start_stream(
         )
         ylims!(ax2, 0.0, 0.75)
         xlims!(ax2, 20, audiogen.freqs[end] > 10000 ? audiogen.freqs[end] : 10000)
-        hideydecorations!(ax2, label=false)
+        hideydecorations!(ax2; label=false)
         spectrum_left = Observable{Vector{Float64}}(abs.(U_stereo[audiogen.freq_idx, 1]))
         spectrum_right = Observable{Vector{Float64}}(U_stereo[audiogen.freq_idx, 2])
-        rangebars!(
+        rb_left = rangebars!(
             ax2,
             audiogen.freqs,
             zeros(length(audiogen.freqs)),
@@ -63,7 +57,7 @@ function start_stream(
             color=:deeppink,
             label="L",
         )
-        rangebars!(
+        rb_right = rangebars!(
             ax2,
             audiogen.freqs,
             zeros(length(audiogen.freqs)),
@@ -73,13 +67,35 @@ function start_stream(
         )
         axislegend(ax2)
 
+        # interactive elements
+        sg = SliderGrid(
+            fig[2, 2],
+            (label="volume", range=0:0.1:1, startvalue=att),
+            (label="fps", range=5:5:60, startvalue=audiogen.fps),
+            # (label="frequency step", range=1:1:ks.Nx÷2, startvalue=audiogen.freq_idx.step),
+        )
+        running_toggle = Toggle(fig[3, 2]; active=true, height=20, tellwidth=false)
+        Label(
+            fig[3, 2],
+            lift(x -> x ? "running" : "stopped", running_toggle.active);
+            tellwidth=false,
+        )
+        # islider = IntervalSlider(
+        #     fig[3, 2],
+        #     range=range(1, ks.Nx),
+        #     startvalues=(audiogen.freq_idx.start, audiogen.freq_idx.stop),
+        # )
+
         # live time stepping and plotting
         display(fig)
         while events(fig).window_open[]
+            # write audio buffer to stream
             push = @task begin
                 write(stream, audiogen.buf)
             end
             schedule(push)
+
+            # generate new KS data
             generate = @task begin
                 evolve!(ks, nplot)
                 U_new = get_solution(ks)
@@ -95,11 +111,36 @@ function start_stream(
                 U_stereo = U_stereo .* att ./ U_max
                 sine_stack!(audiogen, U_stereo, amp_mod)
             end
+            schedule(generate)
+
+            # update spectrum
             spectrum_left[] = abs.(U_stereo[audiogen.freq_idx, 1])
             spectrum_right[] = U_stereo[audiogen.freq_idx, 2]
 
-            schedule(generate)
+            # get interactive updates
+            on(sg.sliders[1].value) do volume
+                att = volume
+            end
+            on(sg.sliders[2].value) do fps
+                audiogen = AudioGen(
+                    audiogen.sample_rate, fps, audiogen.freq_func; freq_idx=audiogen.freq_idx
+                )
+            end
+            # on(sg.sliders[3].value) do step
+            #     audiogen.freq_idx = audiogen.freq_idx.start:step:audiogen.freq_idx.stop
+            #     audiogen.freqs = audiogen.freq_func.(Float64.(audiogen.freq_idx))
+
+            # end
+            # on(islider.interval) do idx_int
+            #     audiogen.freq_idx = idx_int[1]:audiogen.freq_idx.step:idx_int[2]
+            #     audiogen.freqs = audiogen.freq_func.(Float64.(audiogen.freq_idx))
+            # end
+
             wait(push)
+
+            while !running_toggle.active.val && events(fig).window_open[]
+                sleep(0.2)
+            end
         end
     end
 end
