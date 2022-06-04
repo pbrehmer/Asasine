@@ -17,7 +17,7 @@ function start_stream(
 
         # KS heatmap
         fig = Figure(; resolution=(1000, 700))
-        ax1 = Axis(fig[1:2, 1]; title="Kuramoto-Sivashinsky stream")
+        ax1 = Axis(fig[1:3, 1]; title="Kuramoto-Sivashinsky stream")
         hidedecorations!(ax1)
         hm = heatmap!(
             ax1,
@@ -29,7 +29,7 @@ function start_stream(
             inspectable=false,
             colorrange=(-U_max, U_max),
         )
-        Colorbar(fig[3, 1], hm; ticks=([-U_max, 0.0, U_max], ["L", " ", "R"]), vertical=false)
+        Colorbar(fig[4, 1], hm; ticks=([-U_max, 0.0, U_max], ["L", " ", "R"]), vertical=false)
 
         # frequency spectrum
         ax2 = Axis(
@@ -72,22 +72,22 @@ function start_stream(
             fig[2, 2:3],
             (label="volume", range=0:0.1:1, startvalue=att),
             (label="fps", range=5:5:60, startvalue=audiogen.fps),
-            # (label="frequency step", range=1:1:ks.Nx÷2, startvalue=audiogen.freq_idx.step),
         )
+
+        tb = Textbox(fig[3, 3]; placeholder="...", tellwidth=false, halign=:left)
+        Label(fig[3, 2], "freq(x) = ")
+        tbbutton = Button(fig[3, 3]; label="commit", tellwidth=false, halign=:right)
+
         running_toggle = Toggle(
-            fig[3, 2]; active=true, height=20, tellwidth=false, halign=:left
+            fig[4, 2]; active=true, height=20, tellwidth=false, halign=:left
         )
         Label(
-            fig[3, 2],
+            fig[4, 2],
             lift(x -> x ? "running" : "stopped", running_toggle.active);
             tellwidth=false,
-            width=-1,
+            halign=:right,
+            width=10.0,
         )
-        # islider = IntervalSlider(
-        #     fig[3, 2],
-        #     range=range(1, ks.Nx),
-        #     startvalues=(audiogen.freq_idx.start, audiogen.freq_idx.stop),
-        # )
 
         # resize and display figure
         colsize!(fig.layout, 1, Relative(3 / 5))
@@ -132,18 +132,22 @@ function start_stream(
                     audiogen.sample_rate, fps, audiogen.freq_func; freq_idx=audiogen.freq_idx
                 )
             end
-            # on(sg.sliders[3].value) do step
-            #     audiogen.freq_idx = audiogen.freq_idx.start:step:audiogen.freq_idx.stop
-            #     audiogen.freqs = audiogen.freq_func.(Float64.(audiogen.freq_idx))
-
+            # on(tb.stored_string) do s
+            #     func_string[] = s
             # end
-            # on(islider.interval) do idx_int
-            #     audiogen.freq_idx = idx_int[1]:audiogen.freq_idx.step:idx_int[2]
+            # on(func_string) do val
+            #     eval(Meta.parse("f(x) = " * val))
+            #     audiogen.freq_func = f
             #     audiogen.freqs = audiogen.freq_func.(Float64.(audiogen.freq_idx))
             # end
+            on(tbbutton.clicks) do n
+                # eval(Meta.parse("parsedfunc(x) = " * tb.stored_string.val))
+                # audiogen = AudioGen(
+                #     audiogen.sample_rate, audiogen.fps, parsedfunc; freq_idx=audiogen.freq_idx
+                # )
+            end
 
             wait(push)
-
             while !running_toggle.active.val && events(fig).window_open[]
                 sleep(0.2)
             end

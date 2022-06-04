@@ -28,9 +28,7 @@ ks_theme = Theme(;
     ),
     Legend=(framecolor=green, bgcolor=black),
     Slider=(
-        color_active=green,
-        color_active_dimmed=green_dimmed,
-        color_inactive=green_dimmed,
+        color_active=green, color_active_dimmed=green_dimmed, color_inactive=green_dimmed
     ),
     Colorbar=(
         tickcolor=green,
@@ -41,12 +39,16 @@ ks_theme = Theme(;
         rightspinecolor=green,
         colormap=colormap,
     ),
-    Toggle = (
+    Toggle=(
         buttoncolor=green,
         toggleduration=0.1,
         # framecolor_active=:white,
         # framecolor_inactive=green_dimmed,
     ),
+    Textbox=(
+        bordercolor=green, bordercolor_focused=green, bordercolor_hover=green_lessdimmed
+    ),
+    Button=(buttoncolor=green_dimmed, buttoncolor_active=green_lessdimmed),
 )
 export ks_theme
 
