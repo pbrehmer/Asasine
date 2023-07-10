@@ -1,3 +1,6 @@
+# The manifesto
+Manifest.toml
+
 # ignore notebook checkpoints
 .ipynb_checkpoints/
 
@@ -9,3 +12,4 @@ asasine.code-workspace
 
 # Julia formatting
 .JuliaFormatter.toml
+
