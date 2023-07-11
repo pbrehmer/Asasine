@@ -1,29 +1,26 @@
 using Revise
-using Makie
+using GLMakie
+using SampledSignals
 using Asasine
-set_theme!(ks_theme)
+set_theme!(kstheme)
+GLMakie.activate!(inline=false)  # Open visuals in window
 
 # KS parameters
-Lx = 128
-Nx = 512
-dt = 1 / 16
-x = Lx / Nx * collect(1:Nx)
-u0 = cos.(x) .+ 0.1 * cos.(x / 16) .* (1 .+ 2 * sin.(x / 16));
-ks = KSIntegrator(u0, Lx, dt);
+Lx = Float32(64)
+Nx = 4Lx
+dt = Float32(1 / 16)
+x  = Lx / Nx * collect(1:Nx)
+u0 = Float32.(@. cos(x) + 0.1 * cos(x / 16) * (1 + 2 * sin(x / 16)))
 
-# audio parameters
-sample_rate = Float64(44100)
-fps = 30
-freq_step = 16
-freq_idx = 10:freq_step:Nx-10
-freq_func(x) = 40.0 + tanh(0.2 * x / Nx) * 4000.0
-audiogen = AudioGen(sample_rate, fps, freq_func; freq_idx=freq_idx);
+# Audio parameters
+fps     = 30Hz
+freqidx = 10:16:Int(Nx)-10
+freqs   = Float32.(@. 40.0 + 4000.0tanh(0.2 * freqidx / Nx))
+son     = Sonifier(freqs, freqidx, x -> x^5)
 println("Number of pixels on y-axis: ", Nx)
-println("Number of y-axis-mapped sine frequencies: ", length(freq_idx))
+println("Number of y-axis-mapped sine frequencies: ", length(freqidx))
 
-# start time stepping
-Nt = 600
-nplot = 1
-att = 0.8 # additional attenuation
-amp_mod = x -> x^5
-start_stream(sample_rate, ks, audiogen, Nt, nplot, att, amp_mod)
+## Initialize integrator and buffer, and start live stepping
+ks = KSIntegrator{Float32,ComplexF32}(; u0, Lx, dt);
+sbuf = SampleBuf(Float32, 44100, 1 / fps, 2)
+stream(sbuf, son, ks; Nt=600, att=0.8)

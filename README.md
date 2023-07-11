@@ -6,14 +6,10 @@ The space indices of `U[t, x]` correspond to the sine frequencies of the stack a
 
 ## Todo
 
-- circumvent `on(...)` multiple execution in while-loop
 - add interactive elements
-  - start/step/stop slider for frequency indices
+  - fix button: fixes `U[x,t]` slice and halts evolution
   - restart button
-- maybe generate audio buffer via IFFT for improved performance
-- add record function
-  - export audio/video separately or fuse into one `.mp4` file?
-- start audio generation and heatmap animation from `U[0, :]`
-  - think about renormalizing audio then
-- code up own colormap (2 colors for clear L/R channel visual feedback)
-- investigate divergence of CNAB2 stepping for certain `kx` orderings
+- generate audio buffer via IFFT for improved performance
+- add export scripts: export audio/video/image separately
+- new colormap? (2 colors for clear L/R channel visual feedback)
+- stop divergence of CNAB2 stepping for certain `kx` orderings
