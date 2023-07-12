@@ -1,15 +1,13 @@
 # The manifesto
 Manifest.toml
 
-# ignore notebook checkpoints
+# Notebook checkpoints
 .ipynb_checkpoints/
-
-# exported animations take up lots of space
-export/
 
 # VS code workspace
 asasine.code-workspace
 
-# Julia formatting
-.JuliaFormatter.toml
-
+# Exported files
+*.png
+*.mp4
+*.wav

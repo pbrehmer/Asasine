@@ -1,13 +1,14 @@
-# T: floating-point type (for audio operations usually 32bit floats)
+# Contains settings and convenience variables that are used to integrate the KS equation
+# T: floating-point type (for audio operations usually 32 bit floats)
 # C: complex floating point type
 @kwdef mutable struct KSIntegrator{T<:Real,C}
-    u0::Vector{T}
-    Lx::T
-    dt::T
+    u0::Vector{T}  # Initial condition
+    Lx::T  # Spatial length
+    dt::T  # Time step size
 
-    Nx::Int = length(u0)
+    Nx::Int = length(u0)  # Spatial resolution
     kx::Vector{T} = vcat(0:Nx/2-1, 0, -Nx/2+1:-1)  # PBC wave numbers
-    alpha::Vector{T} = 2pi / Lx * kx  # converted wave numbers
+    alpha::Vector{T} = 2pi / Lx * kx  # Converted wave numbers
 
     # Convenience variables
     L::Vector{T} = alpha.^2 - alpha.^4
@@ -27,6 +28,13 @@
     u::Vector{C} = fft(u0)
 end
 
+# Default to 32 bit floating point arithmetic
+KSIntegrator{T}(u0, Lx, dt) where {T<:Real} = KSIntegrator{T,Complex{T}}(; u0=T.(u0), Lx=T(Lx), dt=T(dt))
+
+# Obtain real-space solution
+solution(ks::KSIntegrator) = real(ifft(ks.u))
+
+# Perform one CNAB2 time evolution step
 function evolve!(ks::KSIntegrator, steps::Int=1)
     for _ = 0:steps-1
         # Compute Nn = G .* fft(real(ifft(u)).^2) inbounds with fastmath
@@ -51,9 +59,8 @@ function evolve!(ks::KSIntegrator, steps::Int=1)
     end
 end
 
-solution(ks::KSIntegrator) = real(ifft(ks.u))
-
-function integrate(ks::KSIntegrator{T}, Nt, nplot) where T
+# Integrate KS equation for Nt time steps, saving the solution each nplot steps
+function integrate(ks::KSIntegrator{T}, Nt; nplot=1) where {T}
     nsave = round(Integer, Nt / nplot) + 1  # Total number of saved time steps
     x = ks.Lx / ks.Nx * collect(1:ks.Nx)
     t = ks.dt * nplot * collect(0:nsave-1)

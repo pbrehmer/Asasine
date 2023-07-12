@@ -14,7 +14,10 @@ export Sonifier, sinestack!, stereorize
 include("./ks.jl")
 export KSIntegrator, evolve!, solution, integrate
 
-include("./stepping.jl")
+include("./stream.jl")
 export stream
+
+include("render.jl")
+export renderaudio, renderimage, rendervideo
 
 end

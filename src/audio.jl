@@ -1,11 +1,12 @@
-
+# Contains information that maps the KS solutions onto a frequency spectrum
 struct Sonifier{T<:Real}
     freqs::Vector{T}
     freqidx::AbstractVector{Int}
     ampmap
 end
 
-# Stereo
+# Write a sum of sine waves to an stereo audio buffer based on the provided KS solution
+# which is translated via the Sonifier to a frequency spectrum
 function sinestack!(sbuf::SampleBuf{T,2}, u::Matrix{T}, son::Sonifier, lastphases) where {T}
     sbuf .= 0.0  # Reset buffer
     dom = domain(sbuf)
@@ -18,7 +19,7 @@ function sinestack!(sbuf::SampleBuf{T,2}, u::Matrix{T}, son::Sonifier, lastphase
     end
 end
 
-# Mono
+# Same in mono
 function sinestack!(sbuf::SampleBuf{T,1}, u::Vector{T}, freqs, lastphases, ampmap) where {T}
     sbuf .= 0.0  # Reset buffer
     dom = domain(sbuf)
@@ -31,6 +32,8 @@ end
 
 # TODO: sine stack generation via inverse FFT
 
+# Map KS solution to a stereo buffer (matrix), where positive and negative values
+# are mapped to the left and right channels (columns 1 and 2), respectively
 function stereorize(u::Vector{T}) where {T}
     ustereo = hcat(u, zeros(T, length(u)))
     for i in 1:length(u)

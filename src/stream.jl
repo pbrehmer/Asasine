@@ -1,10 +1,15 @@
-
+# Open an audio stream on the system's default output and
+# live animate and sonify the KS solution while time stepping
 function stream(sbuf::SampleBuf{T}, son::Sonifier{T}, ks::KSIntegrator;
-                 Nt=600, nplot=1, att=0.8, resolution=(1000, 600)) where {T}
+                Nt=600, nplot=1, att=0.8, resolution=(1000, 600), theme=kstheme) where {T}
     PortAudioStream(0, 2; samplerate=samplerate(sbuf)) do stream
+        # GLMakie settings
+        GLMakie.activate!(inline=false)  # Open visuals in window
+        set_theme!(theme)
+
         # Initialize frame
-        U, t, x = integrate(ks, Nt, nplot)
-        Umax = maximum(abs.(U))  # For attenuation
+        U, t, x = integrate(ks, Nt; nplot)
+        Umax = maximum(abs, U)  # For attenuation
         Ustereo = stereorize(U[end, :])
 
         # KS heatmap
