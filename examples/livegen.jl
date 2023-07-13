@@ -15,7 +15,7 @@ fps     = 30Hz
 freqidx = 10:16:Int(Nx)-10
 freqs   = @. 40.0 + 4000.0tanh(0.2 * freqidx / Nx)
 son     = Sonifier{Float32}(freqs, freqidx, x -> x^5)
-sbuf    = SampleBuf(Float32, 44100, 1 / fps, 2)
+sbuf    = SampleBuf(Float32, 44100, 1 / fps, 2);
 
 # Start live stepping
 stream(sbuf, son, ks; Nt=600, att=0.8)

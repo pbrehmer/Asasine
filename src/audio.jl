@@ -34,9 +34,9 @@ end
 
 # Map KS solution to a stereo buffer (matrix), where positive and negative values
 # are mapped to the left and right channels (columns 1 and 2), respectively
-function stereorize(u::Vector{T}) where {T}
+function stereorize(u::AbstractVector{T}) where {T}
     ustereo = hcat(u, zeros(T, length(u)))
-    for i in 1:length(u)
+    for i in eachindex(u)
         @inbounds if u[i] > 0
             @inbounds ustereo[i, 2] = ustereo[i, 1]
             @inbounds ustereo[i, 1] = 0.0

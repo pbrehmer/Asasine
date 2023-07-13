@@ -4,6 +4,7 @@ using FFTW
 using GLMakie
 using PortAudio
 using SampledSignals
+using LibSndFile
 
 include("theme.jl")
 export kstheme
