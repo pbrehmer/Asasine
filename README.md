@@ -26,5 +26,4 @@ For more details, check the notes in the [introductory notebook](/examples/intro
   - fix button: fixes `U[x,t]` slice and halts evolution
   - restart button
 - generate audio buffer via IFFT for improved performance
-- add export scripts: export audio/video/image separately
 - investigate divergence of CNAB2 stepping for certain `kx` orderings
