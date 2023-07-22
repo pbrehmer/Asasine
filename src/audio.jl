@@ -15,7 +15,8 @@ function sinestack!(sbuf::SampleBuf{T,2}, u::Matrix{T}, son::Sonifier, lastphase
             sin.(lastphases[i] .+ 2pi * dom * ν)
         @inbounds @fastmath sbuf[:, 2] .+= son.ampmap(u[son.freqidx[i], 2]) .*
             sin.(lastphases[i] .+ 2pi * dom * ν)
-        @inbounds @fastmath lastphases[i] = (lastphases[i] + 2pi * dom[end] * ν ) % 2pi
+        @inbounds @fastmath lastphases[i] =
+            (lastphases[i] + 2pi * (dom[end] + step(dom)) * ν ) % 2pi
     end
 end
 
@@ -26,7 +27,8 @@ function sinestack!(sbuf::SampleBuf{T,1}, u::Vector{T}, freqs, lastphases, ampma
     for (i, ν) in enumerate(freqs)
         @inbounds @fastmath sbuf .+= ampmap(u[ag.freq_idx[i], 1]) .*
             sin.(lastphases[i] .+ 2pi * dom * ν)
-        @inbounds @fastmath lastphases[i] = (lastphases[i] + 2pi * dom * ν ) % 2pi
+        @inbounds @fastmath lastphases[i] =
+            (lastphases[i] + 2pi * (dom[end] + step(dom)) * ν ) % 2pi
     end
 end
 

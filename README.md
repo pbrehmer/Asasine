@@ -19,11 +19,17 @@ In order to create an interesting stereo image, the KS solution is translated to
 
 For more details, check the notes in the [introductory notebook](/examples/introduction.ipynb) as well as the provided [examples](/examples/).
 
+## References
+
+The idea for this project was sparked by a blog post series [1] by John Carlos Baez on the Kuramoto-Sivashinsky equation. The CNAB2 Julia implementation was largely inspired by Mathab Lak's code [2], which is also used in Ref. [1].
+
+[1] John Carlos Baez, [The Kuramoto–Sivashinsky Equation](https://johncarlosbaez.wordpress.com/2021/10/17/conjectures-on-the-kuramoto-sevashinsky-equation/)
+[2] Mathab Lak, [Test case for PDEs: Kuramoto-Sivashinsky](https://online.kitp.ucsb.edu/online/transturb17/gibson/html/5-kuramoto-sivashinksy.html)
+
 ## Todo
 
-- remove slight clicks and pops
 - add interactive elements
   - fix button: fixes `U[x,t]` slice and halts evolution
   - restart button
 - generate audio buffer via IFFT for improved performance
-- investigate divergence of CNAB2 stepping for certain `kx` orderings
+- investigate divergence of CNAB2 stepping for certain wave number orderings

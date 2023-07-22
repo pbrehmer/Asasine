@@ -5,9 +5,12 @@ Manifest.toml
 .ipynb_checkpoints/
 
 # VS code workspace
-asasine.code-workspace
+Asasine.code-workspace
 
 # Exported files
 *.png
 *.mp4
 *.wav
+
+# Playground
+examples/sandbox.jl
